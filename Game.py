@@ -1,10 +1,11 @@
 import pygame, sys
+from GameObject import GameObject
 
 pygame.init()
 pygame.mixer.init()
 
 #Title of game
-pygame.display.set_caption("PacMan V.2000")
+pygame.display.set_caption("Pacman")
 
 #Sound/Music
 sound = pygame.mixer.Sound("Sound/punch.wav")
@@ -14,7 +15,7 @@ windowSize = (800, 600)
 screen = pygame.display.set_mode(windowSize)
 
 #Sprite Start Position
-PlayerX, PlayerY, = 400,300
+PlayerX, PlayerY, = 400, 300
 ClydeX, ClydeY = 500, 400
 
 #Font
@@ -24,15 +25,26 @@ myFont = pygame.font.SysFont("Courier New", 72, True, True)
 graphic_Obj = pygame.image.load("image/PacMan.png")
 graphic_Obj = pygame.transform.scale(graphic_Obj, (40, 40))
 graphic_ObjSize = graphic_Obj.get_size()
+player = GameObject(300, 400, graphic_ObjSize[0], graphic_ObjSize[1])
 
 #Enemies
 enemy_Obj = pygame.image.load("image/ClydePng.png")
 enemy_Obj = pygame.transform.scale(enemy_Obj, (40, 40))
 enemy_ObjSize = enemy_Obj.get_size()
 
+#Wall Sprite
+wall_obj = pygame.image.load("image/BUILDAMUR.gif")
+wall_obj = pygame.transform.scale(wall_obj, (40, 40))
+wall_objSize = wall_obj.get_size()
+
 #Cheese Sprite
 cheese_Obj = pygame.image.load("image/Yellow_icon.svg.png")
-cheese_Obj = pygame.transform.scale(cheese_Obj, (20, 20))
+cheese_Obj = pygame.transform.scale(cheese_Obj, (15, 15))
+cheese_ObjSize = cheese_Obj.get_size()
+
+#Big Cheese Sprite
+big_cheese_Obj = pygame.image.load("image/big cheese.png")
+big_cheese_Obj = pygame.transform.scale(big_cheese_Obj, (25, 25))
 
 #Clock
 clock = pygame.time.Clock()
@@ -43,8 +55,14 @@ right = pygame.transform.flip(left, True, False)
 up = pygame.transform.rotate(graphic_Obj, 90)
 down = pygame.transform.rotate(graphic_Obj, -90)
 
+#SameDirectionTIcker
+sameDirectionTicker = 0
+
 
 #Load the playable level
+
+walls = []
+
 def loadScene():
     posX, posY = 0, 0
 
@@ -53,13 +71,19 @@ def loadScene():
         for line in file.readlines():
             for char in line:
                 if char == "W":
-                    pygame.draw.rect(screen, (0, 0, 200), (posX, posY, 40, 40))
+                    screen.blit(wall_obj, (posX, posY))
+                    walls.append(GameObject(posX, posY, 40 ,40))
 
                 posX = posX + 40
             posY = posY + 40
             posX = 0
     except:
-        print("Error in level.dat")
+        print("Error in loading scene")
+
+loadScene()
+print(walls[2])
+
+wallObj = walls[0]
 
 
 def loadItems():
@@ -69,16 +93,19 @@ def loadItems():
         file = open("level.dat")
         for line in file.readlines():
             for char in line:
-                if char == "c":
-                   screen.blit(cheese_Obj, (itemposX, itemposY))
-                   #pygame.draw.circle(screen,(255, 255, 0), [itemposX, itemposY], 7)
+                if char == "C":
+                    screen.blit(cheese_Obj, (itemposX, itemposY))
+                if char == "B":
+                    screen.blit(big_cheese_Obj, (itemposX, itemposY))
 
-                itemposX = itemposX + 40
-            itemposY = itemposY + 40
+                itemposX = itemposX + 41
+            itemposY = itemposY + 42
             itemposX = 0
     except:
         print("Error in loading items")
 
+
+currDirection, nextDirection = "", ""
 
 while True:
 
@@ -91,40 +118,78 @@ while True:
             sys.exit()
 
     #Movement
-    keys = pygame.key.get_pressed()
 
-    #Move direction
-    if keys[pygame.K_RIGHT]:
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_RIGHT]:  # event.key == pygame.K_RIGHT:
+        if nextDirection != "right":
+            nextDirection = "right"
+    if keys[pygame.K_LEFT]:
+        if nextDirection != "left":
+            nextDirection = "left"
+    if keys[pygame.K_UP]:
+        if nextDirection != "up":
+            nextDirection = "up"
+    if keys[pygame.K_DOWN]:
+        if nextDirection != "down":
+            nextDirection = "down"
+
+    player.setPosition(PlayerX, PlayerY)
+
+
+#Detect movement
+
+    if currDirection != nextDirection:
+        if nextDirection == "right" and pygame.Surface.get_at(screen, (player.getX() + player.getWidth() + 1, player.getY() + 1)) != (0,0,255) and pygame.Surface.get_at(screen, (player.getX() + player.getWidth() + 1, player.getY() + player.getHeight() - 1)) != (0,0,255):
+            currDirection = nextDirection
+            wall_obj = player.findObject(walls, currDirection)
+        elif nextDirection == "left" and pygame.Surface.get_at(screen, (player.getX() - 1, player.getY() + 1)) != (0, 0, 255) and pygame.Surface.get_at(screen, (player.getX() - 1, player.getY() + player.getHeight() - 1)) != (0, 0, 255):
+            currDirection = nextDirection
+            wallObj = player.findObject(walls, currDirection)
+        elif nextDirection == "up" and pygame.Surface.get_at(screen, (player.getX() + 1, player.getY() - 1)) != (0, 0, 255) and pygame.Surface.get_at(screen, (player.getX() + player.getWidth() - 1, player.getY() - 1)) != (0, 0, 255):
+            currDirection = nextDirection
+            wallObj = player.findObject(walls, currDirection)
+        elif nextDirection == "down" and pygame.Surface.get_at(screen, (player.getX() + 1, player.getY() + player.getHeight() + 1)) != (0, 0, 255) and pygame.Surface.get_at(screen, (player.getX() + player.getWidth() - 1, player.getY() + player.getHeight() + 1)) != (0, 0, 255):
+            currDirection = nextDirection
+            wallObj = player.findObject(walls, currDirection)
+
+
+    if currDirection == "right":
         PlayerX = PlayerX + 5
-        graphic_Obj = right
-    elif keys[pygame.K_LEFT]:
-        PlayerX = PlayerX + (-5)
-        graphic_Obj = left
-    elif keys[pygame.K_UP]:
-        PlayerY = PlayerY + -5
-        graphic_Obj = up
-    elif keys[pygame.K_DOWN]:
+    elif currDirection == "left":
+        PlayerX = PlayerX - 5
+    elif currDirection == "up":
+        PlayerY = PlayerY - 5
+    elif currDirection == "down":
         PlayerY = PlayerY + 5
-        graphic_Obj = down
+
+    if player.intersects(wallObj):
+        if currDirection != nextDirection:
+            currDirection = nextDirection
+            wall_obj = player.findObject(walls, currDirection)
+        screen.blit(graphic_Obj, (player.getX(), player.getY()))
+    else:
+        player.setPosition(player.getX() + PlayerX, player.getY() + PlayerY)
+        screen.blit(graphic_Obj, (player.getX(), player.getY()))
+
+    PlayerX, PlayerY = 40,40
 
     #Borders to grapich object
-    if PlayerX + graphic_ObjSize[0] > 760:
-        PlayerX = 760 - graphic_ObjSize[0]
-    if PlayerX < 40:
-        PlayerX = 40
-    if PlayerY + graphic_ObjSize[0] > 560:
-        PlayerY = 560 - graphic_ObjSize[0]
-    if PlayerY < 40:
-        PlayerY = 40
+    #if PlayerX + graphic_ObjSize[0] > 800:
+        #PlayerX = 800 - graphic_ObjSize[0]
+    #if PlayerX < 0:
+        #PlayerX = 0
+    #if PlayerY + graphic_ObjSize[0] > 600:
+        #PlayerY = 600 - graphic_ObjSize[0]
+    #if PlayerY < 0:
+        #PlayerY = 0
 
     #Create scenes/items
-    loadScene()
-    loadItems()
+    #loadItems()
 
     #Create sprite
-    screen.blit(graphic_Obj, (PlayerX, PlayerY))
-    screen.blit(enemy_Obj, (ClydeX, ClydeY))
+    #screen.blit(graphic_Obj, (PlayerX, PlayerY))
+    #screen.blit(enemy_Obj, (ClydeX, ClydeY))
 
     #Updates and refreshes screen
     pygame.display.update()
-    screen.fill((0, 0, 0))
+    #screen.fill((0, 0, 0))
