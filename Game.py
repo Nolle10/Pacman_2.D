@@ -1,4 +1,5 @@
-import pygame, sys
+import pygame
+import sys
 from GameObject import GameObject
 
 pygame.init()
@@ -15,27 +16,27 @@ windowSize = (800, 600)
 screen = pygame.display.set_mode(windowSize)
 
 #Sprite Start Position
-PlayerX, PlayerY, = 400, 300
+PlayerX, PlayerY, = 0, 0
 ClydeX, ClydeY = 500, 400
 
 #Font
 myFont = pygame.font.SysFont("Courier New", 72, True, True)
 
 #Sprites
-graphic_Obj = pygame.image.load("image/PacMan.png")
+graphic_Obj = pygame.image.load("image/Pacman.Png")
 graphic_Obj = pygame.transform.scale(graphic_Obj, (40, 40))
 graphic_ObjSize = graphic_Obj.get_size()
-player = GameObject(300, 400, graphic_ObjSize[0], graphic_ObjSize[1])
+player = GameObject(160, 200, 40, 40)
 
 #Enemies
-enemy_Obj = pygame.image.load("image/ClydePng.png")
-enemy_Obj = pygame.transform.scale(enemy_Obj, (40, 40))
-enemy_ObjSize = enemy_Obj.get_size()
+#enemy_Obj = pygame.image.load("image/ClydePng.png")
+#enemy_Obj = pygame.transform.scale(enemy_Obj, (40, 40))
+#enemy_ObjSize = enemy_Obj.get_size()
 
 #Wall Sprite
-wall_obj = pygame.image.load("image/BUILDAMUR.gif")
-wall_obj = pygame.transform.scale(wall_obj, (40, 40))
-wall_objSize = wall_obj.get_size()
+#wall_obj = pygame.image.load("image/BUILDAMUR.gif")
+#wall_obj = pygame.transform.scale(wall_obj, (40, 40))
+#wall_objSize = wall_obj.get_size()
 
 #Cheese Sprite
 cheese_Obj = pygame.image.load("image/Yellow_icon.svg.png")
@@ -50,10 +51,10 @@ big_cheese_Obj = pygame.transform.scale(big_cheese_Obj, (25, 25))
 clock = pygame.time.Clock()
 
 #Rotating the sprite
-left = pygame.transform.flip(graphic_Obj, True, False)
-right = pygame.transform.flip(left, True, False)
-up = pygame.transform.rotate(graphic_Obj, 90)
-down = pygame.transform.rotate(graphic_Obj, -90)
+#left = pygame.transform.flip(graphic_Obj, True, False)
+#right = pygame.transform.flip(left, True, False)
+#up = pygame.transform.rotate(graphic_Obj, 90)
+#down = pygame.transform.rotate(graphic_Obj, -90)
 
 #SameDirectionTIcker
 sameDirectionTicker = 0
@@ -70,9 +71,9 @@ def loadScene():
         file = open("level.dat")
         for line in file.readlines():
             for char in line:
-                if char == "W":
-                    screen.blit(wall_obj, (posX, posY))
-                    walls.append(GameObject(posX, posY, 40 ,40))
+                if char == "1":
+                    pygame.draw.rect(screen, (0,0,255), (posX, posY, 40, 40))
+                    walls.append(GameObject(posX, posY, 40,40))
 
                 posX = posX + 40
             posY = posY + 40
@@ -80,10 +81,9 @@ def loadScene():
     except:
         print("Error in loading scene")
 
-loadScene()
-print(walls[2])
 
-wallObj = walls[0]
+loadScene()
+
 
 
 def loadItems():
@@ -105,7 +105,12 @@ def loadItems():
         print("Error in loading items")
 
 
+loadItems()
+
 currDirection, nextDirection = "", ""
+wallObj = walls[0]
+
+
 
 while True:
 
@@ -133,25 +138,7 @@ while True:
         if nextDirection != "down":
             nextDirection = "down"
 
-    player.setPosition(PlayerX, PlayerY)
-
-
-#Detect movement
-
-    if currDirection != nextDirection:
-        if nextDirection == "right" and pygame.Surface.get_at(screen, (player.getX() + player.getWidth() + 1, player.getY() + 1)) != (0,0,255) and pygame.Surface.get_at(screen, (player.getX() + player.getWidth() + 1, player.getY() + player.getHeight() - 1)) != (0,0,255):
-            currDirection = nextDirection
-            wall_obj = player.findObject(walls, currDirection)
-        elif nextDirection == "left" and pygame.Surface.get_at(screen, (player.getX() - 1, player.getY() + 1)) != (0, 0, 255) and pygame.Surface.get_at(screen, (player.getX() - 1, player.getY() + player.getHeight() - 1)) != (0, 0, 255):
-            currDirection = nextDirection
-            wallObj = player.findObject(walls, currDirection)
-        elif nextDirection == "up" and pygame.Surface.get_at(screen, (player.getX() + 1, player.getY() - 1)) != (0, 0, 255) and pygame.Surface.get_at(screen, (player.getX() + player.getWidth() - 1, player.getY() - 1)) != (0, 0, 255):
-            currDirection = nextDirection
-            wallObj = player.findObject(walls, currDirection)
-        elif nextDirection == "down" and pygame.Surface.get_at(screen, (player.getX() + 1, player.getY() + player.getHeight() + 1)) != (0, 0, 255) and pygame.Surface.get_at(screen, (player.getX() + player.getWidth() - 1, player.getY() + player.getHeight() + 1)) != (0, 0, 255):
-            currDirection = nextDirection
-            wallObj = player.findObject(walls, currDirection)
-
+    #player.setPosition(PlayerX, PlayerY)
 
     if currDirection == "right":
         PlayerX = PlayerX + 5
@@ -162,16 +149,42 @@ while True:
     elif currDirection == "down":
         PlayerY = PlayerY + 5
 
+#Detect movement
+
+    if currDirection != nextDirection:
+        if nextDirection == "right" and pygame.Surface.get_at(screen, (player.getX() + player.getWidth() + 1, player.getY() + 1)) != (0, 0, 255) and pygame.Surface.get_at(screen, (player.getX() + player.getWidth() + 1, player.getY() + player.getHeight() - 1)) != (0, 0, 255):
+            currDirection = nextDirection
+            wallObj = player.locateCollisionObj(walls, currDirection)
+        elif nextDirection == "left" and pygame.Surface.get_at(screen, (player.getX() - 1, player.getY() + 1)) != (0, 0, 255) and pygame.Surface.get_at(screen, (player.getX() - 1, player.getY() + player.getHeight() - 1)) != (0, 0, 255):
+            currDirection = nextDirection
+            wallObj = player.locateCollisionObj(walls, currDirection)
+        elif nextDirection == "up" and pygame.Surface.get_at(screen, (player.getX() + 1, player.getY() - 1)) != (0, 0, 255) and pygame.Surface.get_at(screen, (player.getX() + player.getWidth() - 1, player.getY() - 1)) != (0, 0, 255):
+            currDirection = nextDirection
+            wallObj = player.locateCollisionObj(walls, currDirection)
+        elif nextDirection == "down" and pygame.Surface.get_at(screen, (player.getX() + 1, player.getY() + player.getHeight() + 1)) != (0, 0, 255) and pygame.Surface.get_at(screen, (player.getX() + player.getWidth() - 1, player.getY() + player.getHeight() + 1)) != (0, 0, 255):
+            currDirection = nextDirection
+            wallObj = player.locateCollisionObj(walls, currDirection)
+        elif nextDirection != "" and currDirection == "" or (currDirection == "right" and nextDirection == "left") or (currDirection == "left" and nextDirection == "right") or (currDirection == "down" and nextDirection == "up") or (currDirection == "up" and nextDirection == "down"):
+            currDirection = nextDirection
+            wallObj = player.locateCollisionObj(walls, currDirection)
+
+
+    print(wallObj)
+    #print(player.getX(), player.getY())
+
+
+    pygame.draw.rect(screen, (0,0,0), (player.getX(), player.getY(),40,40))
     if player.intersects(wallObj):
         if currDirection != nextDirection:
             currDirection = nextDirection
-            wall_obj = player.findObject(walls, currDirection)
+            wallObj = player.locateCollisionObj(walls, currDirection)
         screen.blit(graphic_Obj, (player.getX(), player.getY()))
     else:
         player.setPosition(player.getX() + PlayerX, player.getY() + PlayerY)
         screen.blit(graphic_Obj, (player.getX(), player.getY()))
 
-    PlayerX, PlayerY = 40,40
+    PlayerX, PlayerY = 0, 0
+
 
     #Borders to grapich object
     #if PlayerX + graphic_ObjSize[0] > 800:

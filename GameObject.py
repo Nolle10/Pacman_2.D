@@ -1,15 +1,16 @@
-class GameObject():
-    def __init__(self,x ,y ,width,height):
+class GameObject:
+    def __init__(self):
+        pass
+
+    def __init__(self, x, y, width, height):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
 
-    def getWidth(self):
-        return self.width
-
-    def getHeight(self):
-        return self.height
+    def setPosition(self, x, y):
+        self.x = x
+        self.y = y
 
     def getX(self):
         return self.x
@@ -17,11 +18,11 @@ class GameObject():
     def getY(self):
         return self.y
 
+    def getWidth(self):
+        return self.width
 
-    def setPosition(self, x, y):
-        self.y = y
-        self.x = x
-
+    def getHeight(self):
+        return self.height
 
     def __intersectsX(self, other):
         if self.x >= other.x and self.x <= other.x + other.width:
@@ -42,21 +43,20 @@ class GameObject():
             return True
         return False
 
+    def locateCollisionObj(self, objCollection: list, direction):
 
-    def findObject(self, objCollection: list, direction):
-
-
+        # Check all walls/cheeses to determine, which objects are 'in Pacmans way' potentially.
         resultSet = []
         for element in objCollection:
             if direction == "right" or direction == "left":
                 if element.y == self.y:
                     resultSet.append(element)
+            else:
+                if element.x == self.x:
+                    resultSet.append(element)
 
-                else:
-                    if element.x == self.x:
-                        resultSet.append(element)
-
-
+        # filter through results from list, that may be the object, which Pacman is in risk of colliding with.
+        # find the closest element to Pacman, depending on the position and the direction he travels.
         finalResult = GameObject(10000, 10000, 40, 40)
         for element in resultSet:
             if direction == "right":
@@ -72,4 +72,4 @@ class GameObject():
                 if element.y <= self.y and abs(finalResult.y - self.y) > abs(element.y - self.y):
                     finalResult = element
 
-
+        return finalResult
