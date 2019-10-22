@@ -51,10 +51,10 @@ big_cheese_Obj = pygame.transform.scale(big_cheese_Obj, (25, 25))
 clock = pygame.time.Clock()
 
 #Rotating the sprite
-#left = pygame.transform.flip(graphic_Obj, True, False)
-#right = pygame.transform.flip(left, True, False)
-#up = pygame.transform.rotate(graphic_Obj, 90)
-#down = pygame.transform.rotate(graphic_Obj, -90)
+left = pygame.transform.flip(graphic_Obj, True, False)
+right = pygame.transform.flip(left, True, False)
+up = pygame.transform.rotate(graphic_Obj, 90)
+down = pygame.transform.rotate(graphic_Obj, -90)
 
 #SameDirectionTIcker
 sameDirectionTicker = 0
@@ -85,6 +85,7 @@ def loadScene():
 loadScene()
 
 
+cheeseList = []
 
 def loadItems():
     itemposX, itemposY = 0, 0
@@ -94,7 +95,8 @@ def loadItems():
         for line in file.readlines():
             for char in line:
                 if char == "C":
-                    screen.blit(cheese_Obj, (itemposX, itemposY))
+                    cheese = screen.blit(cheese_Obj, (itemposX, itemposY))
+                    cheeseList.append(cheese)
                 if char == "B":
                     screen.blit(big_cheese_Obj, (itemposX, itemposY))
 
@@ -107,8 +109,11 @@ def loadItems():
 
 loadItems()
 
+print(cheeseList)
+
 currDirection, nextDirection = "", ""
 wallObj = walls[0]
+cheeseObj = cheeseList[0]
 
 
 
@@ -140,15 +145,6 @@ while True:
 
     #player.setPosition(PlayerX, PlayerY)
 
-    if currDirection == "right":
-        PlayerX = PlayerX + 5
-    elif currDirection == "left":
-        PlayerX = PlayerX - 5
-    elif currDirection == "up":
-        PlayerY = PlayerY - 5
-    elif currDirection == "down":
-        PlayerY = PlayerY + 5
-
 #Detect movement
 
     if currDirection != nextDirection:
@@ -169,8 +165,20 @@ while True:
             wallObj = player.locateCollisionObj(walls, currDirection)
 
 
-    print(wallObj)
-    #print(player.getX(), player.getY())
+    if currDirection == "right":
+        right = pygame.transform.flip(left, True, False)
+        PlayerX = PlayerX + 5
+    elif currDirection == "left":
+        left = pygame.transform.flip(graphic_Obj, True, False)
+        PlayerX = PlayerX - 5
+    elif currDirection == "up":
+        up = pygame.transform.rotate(graphic_Obj, 90)
+        PlayerY = PlayerY - 5
+    elif currDirection == "down":
+        PlayerY = PlayerY + 5
+
+    #print(wallObj)
+    print(player.getX(), player.getY())
 
 
     pygame.draw.rect(screen, (0,0,0), (player.getX(), player.getY(),40,40))
@@ -182,6 +190,7 @@ while True:
     else:
         player.setPosition(player.getX() + PlayerX, player.getY() + PlayerY)
         screen.blit(graphic_Obj, (player.getX(), player.getY()))
+
 
     PlayerX, PlayerY = 0, 0
 
